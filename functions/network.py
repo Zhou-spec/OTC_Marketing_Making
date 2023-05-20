@@ -3,7 +3,7 @@ import torch.nn as nn
 
 # This is a plain MLP network
 class Net(nn.Module):
-    def __init__(self, input_size, output_size):
+    def __init__(self, input_size, output_size, final_act):
         super(Net, self).__init__()
         
         self.fc1 = nn.Linear(input_size, 512)
@@ -14,6 +14,7 @@ class Net(nn.Module):
         
         # define the activation function
         self.relu = nn.ReLU()
+        self.final_act = final_act
     
 
     def forward(self, t, S, q):
@@ -30,6 +31,7 @@ class Net(nn.Module):
         x = self.fc4(x)
         x = self.relu(x)
         x = self.fc5(x)
+        x = self.final_act(x)
 
         return x
     
@@ -59,7 +61,7 @@ class ResidualBlock(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, input_size, output_size):
+    def __init__(self, input_size, output_size, final_act):
         super(ResNet, self).__init__()
 
         self.fc1 = nn.Linear(input_size, 256)
@@ -70,6 +72,7 @@ class ResNet(nn.Module):
         self.fc3 = nn.Linear(128, 64)
         self.fc4 = nn.Linear(64, output_size)
         self.activation = nn.ReLU()
+        self.fina_act = final_act
 
     def make_layer(self, out_features, num_blocks):
         layers = []
@@ -92,6 +95,7 @@ class ResNet(nn.Module):
         out = self.fc3(out)
         out = self.activation(out)
         out = self.fc4(out)
+        out = self.final_act(out)
 
         return out
 
@@ -119,12 +123,13 @@ class ResidualBlock_Conv(nn.Module):
         return out
 
 class ResNet_Conv(nn.Module):
-    def __init__(self, intput_size, output_size, input_channels, output_channels, num_blocks):
+    def __init__(self, intput_size, output_size, input_channels, output_channels, num_blocks, final_act):
         super(ResNet_Conv, self).__init__()
         
         self.fc = nn.Linear(intput_size, 128)
         self.conv1 = nn.Conv1d(input_channels, output_channels, kernel_size=3, stride=1, padding=1)
         self.relu = nn.ReLU()
+        self.final_act = final_act
         
         self.blocks = nn.ModuleList()
         for _ in range(num_blocks):
@@ -158,6 +163,8 @@ class ResNet_Conv(nn.Module):
         out = self.fc4(out)
         out = self.relu(out)
         out = self.fc5(out)
+        out = self.final_act(out)
+
 
         return out
 
@@ -165,12 +172,13 @@ class ResNet_Conv(nn.Module):
 
 # this is a simple CNN structure
 class CNN(nn.Module):
-    def __init__(self, input_size, output_size):
+    def __init__(self, input_size, output_size, final_act):
         super(CNN, self).__init__()
         self.fc = nn.Linear(input_size, 256)
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv1d(in_channels = 16, out_channels = 1, kernel_size = 3, stride = 1, padding=1)
         self.relu = nn.ReLU()
+        self.final_act = final_act
         self.fc2 = nn.Linear(256, 128)
         self.fc3 = nn.Linear(128, 64)
         self.fc4 = nn.Linear(64, output_size)
@@ -189,5 +197,6 @@ class CNN(nn.Module):
         out = self.fc3(out)
         out = self.relu(out)
         out = self.fc4(out)
+        out = self.final_act(out)
 
         return out

@@ -133,7 +133,7 @@ def Train_Data_Simulation(T, dt, sigma, S0, A, B, Q, z, delta, gamma, net):
     return S, buy_orders, sell_orders, q, t, bid_vectors, ask_vectors
 
 
-def Test_Data_Simulation_NN(T, dt, sigma, S0, net, A, B):
+def Test_Data_Simulation_NN(T, dt, sigma, S0, net, A, B, z):
     # T: the total time needed
     # dt: the time interval
     # sigma: the volatility
