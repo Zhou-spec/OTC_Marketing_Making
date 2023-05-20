@@ -3,17 +3,15 @@ import torch.nn as nn
 
 # This is a plain MLP network
 class Net(nn.Module):
-    def __init__(self, input_size):
+    def __init__(self, input_size, output_size):
         super(Net, self).__init__()
         
-        self.fc1 = nn.Linear(input_size, 100)
-        self.fc2 = nn.Linear(100, 64)
-        self.fc7 = nn.Linear(64, 32)
-        self.fc8 = nn.Linear(32, 16)
-        self.fc9 = nn.Linear(16, 1)
+        self.fc1 = nn.Linear(input_size, 512)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, 128)
+        self.fc4 = nn.Linear(128, 64)
+        self.fc5 = nn.Linear(64, output_size)
         
-    
-
         # define the activation function
         self.relu = nn.ReLU()
     
@@ -27,11 +25,11 @@ class Net(nn.Module):
         # add 5 more layers
         x = self.fc2(x)
         x = self.relu(x)
-        x = self.fc7(x)
+        x = self.fc3(x)
         x = self.relu(x)
-        x = self.fc8(x)
+        x = self.fc4(x)
         x = self.relu(x)
-        x = self.fc9(x)
+        x = self.fc5(x)
 
         return x
     
@@ -61,7 +59,7 @@ class ResidualBlock(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, input_size):
+    def __init__(self, input_size, output_size):
         super(ResNet, self).__init__()
 
         self.fc1 = nn.Linear(input_size, 256)
@@ -70,7 +68,7 @@ class ResNet(nn.Module):
         self.layer3 = self.make_layer(256, 2)
         self.fc2 = nn.Linear(256, 128)
         self.fc3 = nn.Linear(128, 64)
-        self.fc4 = nn.Linear(64, 1)
+        self.fc4 = nn.Linear(64, output_size)
         self.activation = nn.ReLU()
 
     def make_layer(self, out_features, num_blocks):
@@ -121,10 +119,10 @@ class ResidualBlock_Conv(nn.Module):
         return out
 
 class ResNet_Conv(nn.Module):
-    def __init__(self, input_channels, output_channels, num_blocks):
+    def __init__(self, intput_size, output_size, input_channels, output_channels, num_blocks):
         super(ResNet_Conv, self).__init__()
         
-        self.fc = nn.Linear(3, 128)
+        self.fc = nn.Linear(intput_size, 128)
         self.conv1 = nn.Conv1d(input_channels, output_channels, kernel_size=3, stride=1, padding=1)
         self.relu = nn.ReLU()
         
@@ -136,7 +134,7 @@ class ResNet_Conv(nn.Module):
         self.fc2 = nn.Linear(128, 256)
         self.fc3 = nn.Linear(256, 128)
         self.fc4 = nn.Linear(128, 64)
-        self.fc5 = nn.Linear(64, 1)
+        self.fc5 = nn.Linear(64, output_size)
         
     def forward(self, t, S, q):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -167,7 +165,7 @@ class ResNet_Conv(nn.Module):
 
 # this is a simple CNN structure
 class CNN(nn.Module):
-    def __init__(self, input_size):
+    def __init__(self, input_size, output_size):
         super(CNN, self).__init__()
         self.fc = nn.Linear(input_size, 256)
         self.conv1 = nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=1)
@@ -175,7 +173,7 @@ class CNN(nn.Module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(256, 128)
         self.fc3 = nn.Linear(128, 64)
-        self.fc4 = nn.Linear(64, 1)
+        self.fc4 = nn.Linear(64, output_size)
         
     def forward(self, x):
         out = self.fc(x)
