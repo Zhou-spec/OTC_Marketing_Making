@@ -12,7 +12,7 @@ def reward_deterministic(net, S, q, t, buy_orders, sell_orders, T, dt, A, B, gam
         # combine hold1 and hold2 into one vector
         hold = torch.cat((hold1, hold2), 0)
         reward[i] = torch.dot(b, hold)
-        reward[i] = reward[i] + (q[i + 1] * S[i + 1] - q[i] * S[i]) - delta * h(q[i], Q) * (q[i + 1] - q[i])
+        reward[i] = reward[i] + (q[i + 1] * S[i + 1] - q[i] * S[i]) - delta * q[i] * q[i]
 
     return reward
 

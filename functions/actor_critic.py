@@ -12,7 +12,7 @@ def reward(net, S, q, t, buy_orders, sell_orders, T, dt, A, B, gamma, delta, z, 
         # combine hold1 and hold2 into one vector
         hold = torch.cat((hold1, hold2), 0)
         reward[i] = torch.dot(mean, hold)
-        reward[i] = reward[i] + (q[i + 1] * S[i + 1] - q[i] * S[i]) - delta * h(q[i], Q) * (q[i + 1] - q[i])
+        reward[i] = reward[i] + (q[i + 1] * S[i + 1] - q[i] * S[i]) - delta * q[i] * q[i]
         reward[i] = reward[i] - (gamma * dt * torch.sum(gamma / (2 * z * B)))
         reward[i] = reward[i] - (gamma * dt * (len(A) * 1.7981798683))
 
