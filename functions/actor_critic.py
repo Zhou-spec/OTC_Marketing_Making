@@ -53,6 +53,6 @@ def policy_loss(policy_net, value_net, S, q, t, buy_orders, sell_orders, bid_vec
     for i in range(len(p) - 1):
         loss[i] = p[i] * (r[i] + value_net.forward(t[i + 1], S[i + 1], q[i + 1]) - value_net.forward(t[i], S[i], q[i]))
     
-    scalar_loss = -torch.sum(loss[:-1]) / len(loss[:-1])
+    scalar_loss = torch.sum(loss[:-1]) / len(loss[:-1])
     return scalar_loss
 
