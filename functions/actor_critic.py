@@ -24,7 +24,7 @@ def critic_loss(policy_net, value_net, S, q, t, buy_orders, sell_orders, T, dt, 
     r = reward(policy_net, S, q, t, buy_orders, sell_orders, T, dt, A, B, gamma, delta, z, Q)
     loss = torch.zeros(len(r), device = device)
     for i in range(len(r) - 1):
-        loss[i] = r[i] + value_net.forward(t[i + 1], S[i + 1], q[i + 1]) - value_net.forward(t[i], S[i], q[i])
+        loss[i] = r[i] * dt + value_net.forward(t[i + 1], S[i + 1], q[i + 1]) - value_net.forward(t[i], S[i], q[i])
     
     scalar_loss = 0.5 * torch.sum(loss[:-1] ** 2)
     return scalar_loss
@@ -51,8 +51,8 @@ def policy_loss(policy_net, value_net, S, q, t, buy_orders, sell_orders, bid_vec
     r = reward(policy_net, S, q, t, buy_orders, sell_orders, T, dt, A, B, gamma, delta, z, Q)
     loss = torch.zeros(len(p), device = device)
     for i in range(len(p) - 1):
-        loss[i] = p[i] * (r[i] + value_net.forward(t[i + 1], S[i + 1], q[i + 1]) - value_net.forward(t[i], S[i], q[i]))
+        loss[i] = p[i] * (r[i] * dt + value_net.forward(t[i + 1], S[i + 1], q[i + 1]) - value_net.forward(t[i], S[i], q[i]))
     
-    scalar_loss = torch.sum(loss[:-1]) / len(loss[:-1])
+    scalar_loss = -torch.sum(loss[:-1]) / len(loss[:-1])
     return scalar_loss
 

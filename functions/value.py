@@ -28,5 +28,5 @@ def total_loss(net, S, q, t, dt, buy_orders, sell_orders, z, delta, Q, A, B, gam
     loss2 = inventory_loss(net, S, q, t, dt, buy_orders, sell_orders, z, delta, Q, A, B)
     loss = loss1 + loss2 - gamma * ((K * 1.7981798683) + torch.sum(gamma / (2 * z * B)))
     
-    scalar_loss = 0.5 * torch.sum(loss[:-1] ** 2) * dt
+    scalar_loss = 0.5 * torch.sum(loss[:-1] ** 2) * dt * dt
     return scalar_loss

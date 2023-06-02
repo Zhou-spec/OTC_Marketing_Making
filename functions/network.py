@@ -72,7 +72,7 @@ class ResNet(nn.Module):
         self.fc3 = nn.Linear(128, 64)
         self.fc4 = nn.Linear(64, output_size)
         self.activation = nn.ReLU()
-        self.fina_act = final_act
+        self.final_act = final_act
 
     def make_layer(self, out_features, num_blocks):
         layers = []
@@ -183,7 +183,9 @@ class CNN(nn.Module):
         self.fc3 = nn.Linear(128, 64)
         self.fc4 = nn.Linear(64, output_size)
         
-    def forward(self, x):
+    def forward(self, t, S, q):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        x = torch.tensor([t, S, q], device = device)
         out = self.fc(x)
         out = out.unsqueeze(0)
         out = out.unsqueeze(0)

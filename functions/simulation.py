@@ -49,6 +49,23 @@ def Market_Order_Generator(bid_vector, ask_vector, A, B, dt):
     return buy_orders, sell_orders
 
 
+def initial_Gaussian_Policy(t, S, q, net, A, B, Q, z, delta, gamma):
+    N = len(A)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
+    bid_vector = torch.zeros(N, device = device)
+    ask_vector = torch.zeros(N, device = device)
+
+    mean = net.forward(t, S, q)
+    bid_mean = mean[:int(len(mean) / 2)]
+    ask_mean = mean[int(len(mean) / 2):]
+    covariance_matrix = torch.diag(gamma / (2 * z * B))
+    covariance_matrix = covariance_matrix.to(device)
+    bid_vector = torch.distributions.multivariate_normal.MultivariateNormal(bid_mean, covariance_matrix).sample()
+    ask_vector = torch.distributions.multivariate_normal.MultivariateNormal(ask_mean, covariance_matrix).sample()
+
+    return bid_vector, ask_vector
+
+
 def Gaussian_Policy(t, S, q, net, A, B, Q, z, delta, gamma):
     # t: the current time
     # S: the current stock price
@@ -62,8 +79,8 @@ def Gaussian_Policy(t, S, q, net, A, B, Q, z, delta, gamma):
     ask_vector = torch.zeros(N, device = device)
 
     for i in range(N):
-        bid_mean = (A[i] / (2 * B[i])) - (net.forward(t, S, q + z[i]) - net.forward(t, S, q) + z[i] * (S + delta * h(q, Q))) / (2 * z[i])
-        ask_mean = (A[i] / (2 * B[i])) - (net.forward(t, S, q - z[i]) - net.forward(t, S, q) - z[i] * (S - delta * h(q, Q))) / (2 * z[i])
+        bid_mean = (A[i] / (2 * B[i])) - (net.forward(t, S, q + z[i]) - net.forward(t, S, q) + z[i] * S ) / (2 * z[i])
+        ask_mean = (A[i] / (2 * B[i])) - (net.forward(t, S, q - z[i]) - net.forward(t, S, q) - z[i] * S ) / (2 * z[i])
         variance = gamma / (2 * z[i] * B[i])
         std = torch.sqrt(variance)
         bid_vector[i] = torch.normal(bid_mean, std)
@@ -98,6 +115,31 @@ def DNN_Policy_Stochastic(t, S, q, net, gamma, z, B):
     return bid_vector, ask_vector
 
 
+def initial_Train_Data_Simulation(T, dt, sigma, S0, A, B, Q, z, delta, gamma, net):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    N = int(T / dt)
+    S = Stock_Prices_Simulation(T, dt, sigma, S0)
+    buy_orders = torch.zeros(N, len(A))
+    sell_orders = torch.zeros(N, len(A))
+    buy_orders = buy_orders.to(device)
+    sell_orders = sell_orders.to(device)
+    q = torch.zeros(N, device = device)
+    t = torch.zeros(N, device = device)
+    bid_vectors = torch.zeros(N, len(A))
+    ask_vectors = torch.zeros(N, len(A))
+    bid_vectors = bid_vectors.to(device)
+    ask_vectors = ask_vectors.to(device)
+    for i in range(N - 1):
+        bid_vector, ask_vector = initial_Gaussian_Policy(t[i], S[i], q[i], net, A, B, Q, z, delta, gamma)
+        bid_vectors[i] = bid_vector
+        ask_vectors[i] = ask_vector
+        buy_orders[i], sell_orders[i] = Market_Order_Generator(bid_vector, ask_vector, A, B, dt)
+        for j in range(len(A)):
+            q[i + 1] += (buy_orders[i][j] - sell_orders[i][j]) * z[j]
+        q[i + 1] += q[i]
+        t[i + 1] = t[i] + dt
+        
+    return S, buy_orders, sell_orders, q, t, bid_vectors, ask_vectors
 
 def Train_Data_Simulation(T, dt, sigma, S0, A, B, Q, z, delta, gamma, net):
     # T: the total time needed
